@@ -197,7 +197,7 @@ In this step, you create the resources that will be used throughout the day.
 > Check with your hackathon coach what is applicable for you.
 
 <details>
-<summary>Deploy Azure resources</summary>
+<summary>Deploy Azure resources (bash)</summary>
 
 ```bash
 # Ensure Microsoft.AlertsManagement resource provider is registered for use in the subscription
@@ -211,7 +211,7 @@ export RG_SUFFIX="<initials>"
 
 # Set variables with your initials as suffix
 export RESOURCE_GROUP="rg-tire-factory-hack-${RG_SUFFIX}"
-export LOCATION="swedencentral"
+export LOCATION="southafricanorth"
 
 # Create resource group
 az group create --name $RESOURCE_GROUP --location $LOCATION
@@ -220,6 +220,38 @@ az group create --name $RESOURCE_GROUP --location $LOCATION
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file infra/azuredeploy.json \
+  --parameters location=$LOCATION
+```
+
+⏱️Deployment takes approximately 5-10 minutes.
+
+
+</details>
+
+<details>
+<summary>Deploy Azure resources (PowerShell)</summary>
+
+```powershell
+# Ensure Microsoft.AlertsManagement resource provider is registered for use in the subscription
+az provider register --namespace Microsoft.AlertsManagement
+
+# Ensure you are located in the challenge-0 directory
+cd challenge-0
+
+# Make resource group name easy to identify. Use your initials or other identifier (e.g., "jd" for John Doe)
+$RG_SUFFIX = "<initials>"
+
+# Set variables with your initials as suffix
+$RESOURCE_GROUP = "rg-tire-factory-hack-$RG_SUFFIX"
+$LOCATION = "southafricanorth"
+
+# Create resource group
+az group create --name $RESOURCE_GROUP --location $LOCATION
+
+# Deploy infrastructure
+az deployment group create `
+  --resource-group $RESOURCE_GROUP `
+  --template-file infra/azuredeploy.json `
   --parameters location=$LOCATION
 ```
 
@@ -245,9 +277,15 @@ After deploying resources, configure environment variables in the `.env` file. E
 > Otherwise, the environment variables may not be extracted correctly.
 > If the environment is pre-created for you, the resource group name will be provided by the hackathon coaches. Set it using `export RESOURCE_GROUP='your predefined resource group name'`
 
+<details>
+<summary>Extract Keys (bash)</summary>
+
 ```bash
 # Ensure you are in the challenge-0 directory
 cd challenge-0
+
+# Create empty .env file (if it doesn't exist)
+touch ../.env
 
 # Extract connection keys
 ./get-keys.sh --resource-group $RESOURCE_GROUP
@@ -259,6 +297,42 @@ cat ../.env
 export $(cat ../.env | xargs)
 
 ```
+
+</details>
+
+<details>
+<summary>Extract Keys (PowerShell)</summary>
+
+```powershell
+# Ensure you are in the challenge-0 directory
+cd challenge-0
+
+# Create empty .env file (if it doesn't exist)
+New-Item -Path ../.env -ItemType File -Force
+
+# Extract connection keys (calling bash script from PowerShell)
+bash ./get-keys.sh --resource-group $env:RESOURCE_GROUP
+
+# Verify .env file. No entries should be empty
+Get-Content ../.env
+
+# Make environment variables available in the shell
+Get-Content ../.env | ForEach-Object {
+    if ($_ -and $_ -notmatch '^\s*#' -and $_ -match '=') {
+        $parts = $_ -split '=', 2
+        if ($parts.Count -eq 2) {
+            $name = $parts[0].Trim()
+            $value = $parts[1].Trim()
+            Set-Item -Path "env:$name" -Value $value
+            Write-Host "Set $name"
+        }
+    }
+}
+
+```
+</details>
+
+
 
 > [!TIP]
 > Keep your `.env` file handy throughout the hackathon.
