@@ -348,10 +348,26 @@ Get-Content ../.env | ForEach-Object {
 
 As mentioned in [Context and Background](#-context-and-background), there are several data sources used throughout the hackathon. Run the script below to upload data to **Cosmos DB** and the **Storage Account**, and to create the required APIs in **API Management**.
 
+<details>
+<summary>Seed Data (Bash)</summary>
+
 ```bash
 # Run data seeding script
 ./seed-data.sh
 ```
+
+</details>
+
+<details>
+<summary>Seed Data (PowerShell)</summary>
+
+```powershell
+# Run data seeding script
+bash ./seed-data.sh
+```
+
+</details>
+
 ---
 
 ### Task 8: Assign additional permissions
@@ -367,7 +383,7 @@ To perform certain tasks in the hackathon, you need the following permissions:
 > Check with your hackathon coach what is applicable for you.
 
 <details>
-<summary>Assign permissions</summary>
+<summary>Assign permissions (Bash)</summary>
 
 ```bash
 # Get your Entra ID (AAD) user object ID
@@ -400,6 +416,49 @@ az role assignment create \
   --assignee-principal-type User \
   --role "Cognitive Services OpenAI Contributor" \
   --scope "$OPENAI_RESOURCE_ID"
+
+# Refresh your credentials with the new permissions
+az login --use-device-code
+```
+
+Role assignments can take **5–10 minutes** to fully propagate. If you still see `PermissionDenied` errors after assigning roles, wait a few minutes, then run `az login --use-device-code` again and re-export your environment variables.
+
+</details>
+
+<details>
+<summary>Assign permissions (PowerShell)</summary>
+
+```powershell
+# Get your Entra ID (AAD) user object ID
+$ME_OBJECT_ID = az ad signed-in-user show --query id -o tsv
+
+# Assign "Azure AI Developer" at the AI Foundry Project resource scope
+az role assignment create `
+  --assignee-object-id $ME_OBJECT_ID `
+  --assignee-principal-type User `
+  --role "Azure AI Developer" `
+  --scope $env:AZURE_AI_PROJECT_RESOURCE_ID
+
+# Assign "Azure AI User" at the AI Services resource scope
+# This is required for agent operations (create/run agents)
+# Derive the AI Services ID from the project resource ID
+$AI_SERVICES_ID = $env:AZURE_AI_PROJECT_RESOURCE_ID -replace '/projects/.*$', ''
+
+az role assignment create `
+  --assignee-object-id $ME_OBJECT_ID `
+  --assignee-principal-type User `
+  --role "Azure AI User" `
+  --scope $AI_SERVICES_ID
+
+# Assign "Cognitive Services OpenAI Contributor" at the Azure OpenAI resource scope
+# This is required for data-plane calls like: /openai/deployments/{deployment}/chat/completions
+$OPENAI_RESOURCE_ID = az cognitiveservices account show --name $env:AZURE_OPENAI_SERVICE_NAME --resource-group $env:RESOURCE_GROUP --query id -o tsv
+
+az role assignment create `
+  --assignee-object-id $ME_OBJECT_ID `
+  --assignee-principal-type User `
+  --role "Cognitive Services OpenAI Contributor" `
+  --scope $OPENAI_RESOURCE_ID
 
 # Refresh your credentials with the new permissions
 az login --use-device-code
@@ -461,7 +520,7 @@ WHERE ARRAY_CONTAINS(c.skills, "tire_curing_press")
 ## 🛠️ Troubleshooting and FAQ
 
 <details>
-<summary>Problem: ARM template deployment fails</summary>
+<summary>Problem: ARM template deployment fails (Bash)</summary>
 
 ```bash
 # Check deployment errors
@@ -478,7 +537,24 @@ az provider register --namespace Microsoft.App
 </details>
 
 <details>
-<summary>Problem: <code>seed-data.sh</code> script fails</summary>
+<summary>Problem: ARM template deployment fails (PowerShell)</summary>
+
+```powershell
+# Check deployment errors
+az deployment group show `
+  --resource-group $env:RESOURCE_GROUP `
+  --name azuredeploy `
+  --query properties.error
+
+# Register missing providers (if needed)
+az provider register --namespace Microsoft.AlertsManagement
+az provider register --namespace Microsoft.App
+```
+
+</details>
+
+<details>
+<summary>Problem: <code>seed-data.sh</code> script fails (Bash)</summary>
 
 ```bash
 # Verify Cosmos DB is ready
@@ -500,11 +576,46 @@ bash challenge-0/seed-data.sh
 </details>
 
 <details>
-<summary>Problem: Permission denied on <code>seed-data.sh</code></summary>
+<summary>Problem: <code>seed-data.sh</code> script fails (PowerShell)</summary>
+
+```powershell
+# Verify Cosmos DB is ready
+az cosmosdb show `
+  --name $env:COSMOS_NAME `
+  --resource-group $env:RESOURCE_GROUP `
+  --query provisioningState
+
+# Check if containers exist
+az cosmosdb sql container list `
+  --account-name $env:COSMOS_NAME `
+  --resource-group $env:RESOURCE_GROUP `
+  --database-name "FactoryOpsDB"
+
+# Re-run seed script (idempotent)
+bash challenge-0/seed-data.sh
+```
+
+</details>
+
+<details>
+<summary>Problem: Permission denied on <code>seed-data.sh</code> (Bash)</summary>
 
 ```bash
 # Add execute permission to the script
 chmod +x challenge-0/seed-data.sh
+```
+
+</details>
+
+<details>
+<summary>Problem: Permission denied on <code>seed-data.sh</code> (PowerShell)</summary>
+
+```powershell
+# In PowerShell/Windows, run via bash (WSL)
+bash challenge-0/seed-data.sh
+
+# If WSL is not available, permissions are not an issue on Windows
+# The script will run if bash is available
 ```
 
 </details>
