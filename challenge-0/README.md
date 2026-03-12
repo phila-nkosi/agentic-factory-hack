@@ -206,8 +206,8 @@ az provider register --namespace Microsoft.AlertsManagement
 # Ensure you are located in the challenge-0 directory
 cd challenge-0
 
-# Make resource group name easy to identify. Use your initials or other identifier (e.g., "jd" for John Doe)
-export RG_SUFFIX="<initials>"
+# Make resource group name easy to identify. Use your initials or other identifier (e.g., "team01" for Teamxx)
+$RG_SUFFIX = "<teamXX>"
 
 # Set variables with your initials as suffix
 export RESOURCE_GROUP="rg-tire-factory-hack-${RG_SUFFIX}"
@@ -215,12 +215,6 @@ export LOCATION="southafricanorth"
 
 # Create resource group
 az group create --name $RESOURCE_GROUP --location $LOCATION
-
-# Deploy infrastructure
-az deployment group create \
-  --resource-group $RESOURCE_GROUP \
-  --template-file infra/azuredeploy.json \
-  --parameters location=$LOCATION
 ```
 
 ⏱️Deployment takes approximately 5-10 minutes.
@@ -238,21 +232,12 @@ az provider register --namespace Microsoft.AlertsManagement
 # Ensure you are located in the challenge-0 directory
 cd challenge-0
 
-# Make resource group name easy to identify. Use your initials or other identifier (e.g., "jd" for John Doe)
-$RG_SUFFIX = "<initials>"
+# Make resource group name easy to identify. Use your initials or other identifier (e.g., "team01" for Teamxx)
+$RG_SUFFIX = "<teamXX>"
 
 # Set variables with your initials as suffix
 $RESOURCE_GROUP = "rg-tire-factory-hack-$RG_SUFFIX"
 $LOCATION = "southafricanorth"
-
-# Create resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
-
-# Deploy infrastructure
-az deployment group create `
-  --resource-group $RESOURCE_GROUP `
-  --template-file infra/azuredeploy.json `
-  --parameters location=$LOCATION
 ```
 
 ⏱️Deployment takes approximately 5-10 minutes.
