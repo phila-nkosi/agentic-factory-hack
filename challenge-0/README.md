@@ -217,16 +217,6 @@ export LOCATION="southafricanorth"
 
 </details>
 
-
-
-> [!TIP]
-> Keep your `.env` file handy throughout the hackathon.
-> You need to re-export the environment variables each time you open a new shell or when you resume a stopped codespace.
-
-> [!CAUTION]
-> For convenience, we use key-based authentication and public network access to resources in this hackathon. In real-world implementations, you should consider stronger authentication mechanisms and additional network security.
-> Never commit the `.env` file to the repository. This repo already includes `.env` in [.gitignore](../.gitignore), but if you rename the file you may need to add the new name to `.gitignore` as well.
-
 ---
 ### Task 5: Verify the creation of your resources
 
@@ -235,6 +225,13 @@ Go to the [Azure Portal](https://portal.azure.com/) and find your resource group
 ![Azure Portal Resources](./images/challenge-0-azure-portal-resources.png)
 
 ---
+> [!TIP]
+> Keep your `.env` file handy throughout the hackathon.
+> You need to re-export the environment variables each time you open a new shell or when you resume a stopped codespace.
+
+> [!CAUTION]
+> For convenience, we use key-based authentication and public network access to resources in this hackathon. In real-world implementations, you should consider stronger authentication mechanisms and additional network security.
+> Never commit the `.env` file to the repository. This repo already includes `.env` in [.gitignore](../.gitignore), but if you rename the file you may need to add the new name to `.gitignore` as well.
 
 ### Task 6: Retrieve keys for environment variables
 
