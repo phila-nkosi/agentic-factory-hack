@@ -228,6 +228,37 @@ export LOCATION="southafricanorth"
 > Never commit the `.env` file to the repository. This repo already includes `.env` in [.gitignore](../.gitignore), but if you rename the file you may need to add the new name to `.gitignore` as well.
 
 ---
+### Task 5: Verify the creation of your resources
+
+Go to the [Azure Portal](https://portal.azure.com/) and find your resource group, which should now contain resources like this:
+
+![Azure Portal Resources](./images/challenge-0-azure-portal-resources.png)
+
+---
+
+### Task 6: Retrieve keys for environment variables
+
+After deploying resources, configure environment variables in the `.env` file. Ensure you're logged into **Azure CLI**, then run the `get-keys.sh` script to automatically populate the required values.
+
+> [!IMPORTANT]
+> Wait until all Azure resources are successfully deployed before starting this task.
+> Otherwise, the environment variables may not be extracted correctly.
+> If the environment is pre-created for you, the resource group name will be provided by the hackathon coaches. Set it using `export RESOURCE_GROUP='your predefined resource group name'`
+
+```bash
+# Ensure you are in the challenge-0 directory
+cd challenge-0
+
+# Extract connection keys
+./get-keys.sh --resource-group $RESOURCE_GROUP
+
+# Verify .env file. No entries should be empty
+cat ../.env
+
+# Make environment variables available in the shell
+export $(cat ../.env | xargs)
+
+```
 
 ### Task 7: Seed Factory Sample Data
 
