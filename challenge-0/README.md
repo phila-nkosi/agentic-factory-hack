@@ -197,11 +197,9 @@ In this step, you create the resources that will be used throughout the day.
 > Check with your hackathon coach what is applicable for you.
 
 <details>
-<summary>Deploy Azure resources (bash)</summary>
+<summary>Deploy Azure resources setup</summary>
 
 ```bash
-# Ensure Microsoft.AlertsManagement resource provider is registered for use in the subscription
-az provider register --namespace Microsoft.AlertsManagement
 
 # Ensure you are located in the challenge-0 directory
 cd challenge-0
@@ -212,109 +210,11 @@ $RG_SUFFIX = "<teamXX>"
 # Set variables with your initials as suffix
 export RESOURCE_GROUP="rg-tire-factory-hack-${RG_SUFFIX}"
 export LOCATION="southafricanorth"
-
-# Create resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
 ```
 
 ⏱️Deployment takes approximately 5-10 minutes.
 
 
-</details>
-
-<details>
-<summary>Deploy Azure resources (PowerShell)</summary>
-
-```powershell
-# Ensure Microsoft.AlertsManagement resource provider is registered for use in the subscription
-az provider register --namespace Microsoft.AlertsManagement
-
-# Ensure you are located in the challenge-0 directory
-cd challenge-0
-
-# Make resource group name easy to identify. Use your initials or other identifier (e.g., "team01" for Teamxx)
-$RG_SUFFIX = "<teamXX>"
-
-# Set variables with your initials as suffix
-$RESOURCE_GROUP = "rg-tire-factory-hack-$RG_SUFFIX"
-$LOCATION = "southafricanorth"
-```
-
-⏱️Deployment takes approximately 5-10 minutes.
-
-
-</details>
-
-### Task 5: Verify the creation of your resources
-
-Go to the [Azure Portal](https://portal.azure.com/) and find your resource group, which should now contain resources like this:
-
-![Azure Portal Resources](./images/challenge-0-azure-portal-resources.png)
-
----
-
-### Task 6: Retrieve keys for environment variables
-
-After deploying resources, configure environment variables in the `.env` file. Ensure you're logged into **Azure CLI**, then run the `get-keys.sh` script to automatically populate the required values.
-
-> [!IMPORTANT]
-> Wait until all Azure resources are successfully deployed before starting this task.
-> Otherwise, the environment variables may not be extracted correctly.
-> If the environment is pre-created for you, the resource group name will be provided by the hackathon coaches. Set it using `export RESOURCE_GROUP='your predefined resource group name'`
-
-<details>
-<summary>Extract Keys (bash)</summary>
-
-```bash
-# Ensure you are in the challenge-0 directory
-cd challenge-0
-
-# Create empty .env file (if it doesn't exist)
-touch ../.env
-
-# Extract connection keys
-./get-keys.sh --resource-group $RESOURCE_GROUP
-
-# Verify .env file. No entries should be empty
-cat ../.env
-
-# Make environment variables available in the shell
-export $(cat ../.env | xargs)
-
-```
-
-</details>
-
-<details>
-<summary>Extract Keys (PowerShell)</summary>
-
-```powershell
-# Ensure you are in the challenge-0 directory
-cd challenge-0
-
-# Create empty .env file (if it doesn't exist)
-New-Item -Path ../.env -ItemType File -Force
-
-# Extract connection keys (calling bash script from PowerShell)
-bash ./get-keys.sh --resource-group $env:RESOURCE_GROUP
-
-# Verify .env file. No entries should be empty
-Get-Content ../.env
-
-# Make environment variables available in the shell
-Get-Content ../.env | ForEach-Object {
-    if ($_ -and $_ -notmatch '^\s*#' -and $_ -match '=') {
-        $parts = $_ -split '=', 2
-        if ($parts.Count -eq 2) {
-            $name = $parts[0].Trim()
-            $value = $parts[1].Trim()
-            Set-Item -Path "env:$name" -Value $value
-            Write-Host "Set $name"
-        }
-    }
-}
-
-```
 </details>
 
 
@@ -339,16 +239,6 @@ As mentioned in [Context and Background](#-context-and-background), there are se
 ```bash
 # Run data seeding script
 ./seed-data.sh
-```
-
-</details>
-
-<details>
-<summary>Seed Data (PowerShell)</summary>
-
-```powershell
-# Run data seeding script
-bash ./seed-data.sh
 ```
 
 </details>
@@ -409,50 +299,6 @@ az login --use-device-code
 Role assignments can take **5–10 minutes** to fully propagate. If you still see `PermissionDenied` errors after assigning roles, wait a few minutes, then run `az login --use-device-code` again and re-export your environment variables.
 
 </details>
-
-<details>
-<summary>Assign permissions (PowerShell)</summary>
-
-```powershell
-# Get your Entra ID (AAD) user object ID
-$ME_OBJECT_ID = az ad signed-in-user show --query id -o tsv
-
-# Assign "Azure AI Developer" at the AI Foundry Project resource scope
-az role assignment create `
-  --assignee-object-id $ME_OBJECT_ID `
-  --assignee-principal-type User `
-  --role "Azure AI Developer" `
-  --scope $env:AZURE_AI_PROJECT_RESOURCE_ID
-
-# Assign "Azure AI User" at the AI Services resource scope
-# This is required for agent operations (create/run agents)
-# Derive the AI Services ID from the project resource ID
-$AI_SERVICES_ID = $env:AZURE_AI_PROJECT_RESOURCE_ID -replace '/projects/.*$', ''
-
-az role assignment create `
-  --assignee-object-id $ME_OBJECT_ID `
-  --assignee-principal-type User `
-  --role "Azure AI User" `
-  --scope $AI_SERVICES_ID
-
-# Assign "Cognitive Services OpenAI Contributor" at the Azure OpenAI resource scope
-# This is required for data-plane calls like: /openai/deployments/{deployment}/chat/completions
-$OPENAI_RESOURCE_ID = az cognitiveservices account show --name $env:AZURE_OPENAI_SERVICE_NAME --resource-group $env:RESOURCE_GROUP --query id -o tsv
-
-az role assignment create `
-  --assignee-object-id $ME_OBJECT_ID `
-  --assignee-principal-type User `
-  --role "Cognitive Services OpenAI Contributor" `
-  --scope $OPENAI_RESOURCE_ID
-
-# Refresh your credentials with the new permissions
-az login --use-device-code
-```
-
-Role assignments can take **5–10 minutes** to fully propagate. If you still see `PermissionDenied` errors after assigning roles, wait a few minutes, then run `az login --use-device-code` again and re-export your environment variables.
-
-</details>
-
 
 <br/>
 🎉 Congratulations! Your sample tire factory environment is ready.
@@ -522,23 +368,6 @@ az provider register --namespace Microsoft.App
 </details>
 
 <details>
-<summary>Problem: ARM template deployment fails (PowerShell)</summary>
-
-```powershell
-# Check deployment errors
-az deployment group show `
-  --resource-group $env:RESOURCE_GROUP `
-  --name azuredeploy `
-  --query properties.error
-
-# Register missing providers (if needed)
-az provider register --namespace Microsoft.AlertsManagement
-az provider register --namespace Microsoft.App
-```
-
-</details>
-
-<details>
 <summary>Problem: <code>seed-data.sh</code> script fails (Bash)</summary>
 
 ```bash
@@ -561,46 +390,11 @@ bash challenge-0/seed-data.sh
 </details>
 
 <details>
-<summary>Problem: <code>seed-data.sh</code> script fails (PowerShell)</summary>
-
-```powershell
-# Verify Cosmos DB is ready
-az cosmosdb show `
-  --name $env:COSMOS_NAME `
-  --resource-group $env:RESOURCE_GROUP `
-  --query provisioningState
-
-# Check if containers exist
-az cosmosdb sql container list `
-  --account-name $env:COSMOS_NAME `
-  --resource-group $env:RESOURCE_GROUP `
-  --database-name "FactoryOpsDB"
-
-# Re-run seed script (idempotent)
-bash challenge-0/seed-data.sh
-```
-
-</details>
-
-<details>
 <summary>Problem: Permission denied on <code>seed-data.sh</code> (Bash)</summary>
 
 ```bash
 # Add execute permission to the script
 chmod +x challenge-0/seed-data.sh
-```
-
-</details>
-
-<details>
-<summary>Problem: Permission denied on <code>seed-data.sh</code> (PowerShell)</summary>
-
-```powershell
-# In PowerShell/Windows, run via bash (WSL)
-bash challenge-0/seed-data.sh
-
-# If WSL is not available, permissions are not an issue on Windows
-# The script will run if bash is available
 ```
 
 </details>
