@@ -197,30 +197,19 @@ In this step, you create the resources that will be used throughout the day.
 > Check with your hackathon coach what is applicable for you.
 
 <details>
-<summary>Deploy Azure resources</summary>
+<summary>Deploy Azure resources setup</summary>
 
 ```bash
-# Ensure Microsoft.AlertsManagement resource provider is registered for use in the subscription
-az provider register --namespace Microsoft.AlertsManagement
 
 # Ensure you are located in the challenge-0 directory
 cd challenge-0
 
-# Make resource group name easy to identify. Use your initials or other identifier (e.g., "jd" for John Doe)
-export RG_SUFFIX="<initials>"
+# Make resource group name easy to identify. Use your initials or other identifier (e.g., "team01" for Teamxx)
+$RG_SUFFIX = "<teamXX>"
 
 # Set variables with your initials as suffix
 export RESOURCE_GROUP="rg-tire-factory-hack-${RG_SUFFIX}"
-export LOCATION="swedencentral"
-
-# Create resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
-
-# Deploy infrastructure
-az deployment group create \
-  --resource-group $RESOURCE_GROUP \
-  --template-file infra/azuredeploy.json \
-  --parameters location=$LOCATION
+export LOCATION="southafricanorth"
 ```
 
 ⏱️Deployment takes approximately 5-10 minutes.
@@ -228,6 +217,7 @@ az deployment group create \
 
 </details>
 
+---
 ### Task 5: Verify the creation of your resources
 
 Go to the [Azure Portal](https://portal.azure.com/) and find your resource group, which should now contain resources like this:
@@ -235,6 +225,13 @@ Go to the [Azure Portal](https://portal.azure.com/) and find your resource group
 ![Azure Portal Resources](./images/challenge-0-azure-portal-resources.png)
 
 ---
+> [!TIP]
+> Keep your `.env` file handy throughout the hackathon.
+> You need to re-export the environment variables each time you open a new shell or when you resume a stopped codespace.
+
+> [!CAUTION]
+> For convenience, we use key-based authentication and public network access to resources in this hackathon. In real-world implementations, you should consider stronger authentication mechanisms and additional network security.
+> Never commit the `.env` file to the repository. This repo already includes `.env` in [.gitignore](../.gitignore), but if you rename the file you may need to add the new name to `.gitignore` as well.
 
 ### Task 6: Retrieve keys for environment variables
 
@@ -260,24 +257,20 @@ export $(cat ../.env | xargs)
 
 ```
 
-> [!TIP]
-> Keep your `.env` file handy throughout the hackathon.
-> You need to re-export the environment variables each time you open a new shell or when you resume a stopped codespace.
-
-> [!CAUTION]
-> For convenience, we use key-based authentication and public network access to resources in this hackathon. In real-world implementations, you should consider stronger authentication mechanisms and additional network security.
-> Never commit the `.env` file to the repository. This repo already includes `.env` in [.gitignore](../.gitignore), but if you rename the file you may need to add the new name to `.gitignore` as well.
-
----
-
 ### Task 7: Seed Factory Sample Data
 
 As mentioned in [Context and Background](#-context-and-background), there are several data sources used throughout the hackathon. Run the script below to upload data to **Cosmos DB** and the **Storage Account**, and to create the required APIs in **API Management**.
+
+<details>
+<summary>Seed Data (Bash)</summary>
 
 ```bash
 # Run data seeding script
 ./seed-data.sh
 ```
+
+</details>
+
 ---
 
 ### Task 8: Assign additional permissions
@@ -293,7 +286,7 @@ To perform certain tasks in the hackathon, you need the following permissions:
 > Check with your hackathon coach what is applicable for you.
 
 <details>
-<summary>Assign permissions</summary>
+<summary>Assign permissions (Bash)</summary>
 
 ```bash
 # Get your Entra ID (AAD) user object ID
@@ -334,7 +327,6 @@ az login --use-device-code
 Role assignments can take **5–10 minutes** to fully propagate. If you still see `PermissionDenied` errors after assigning roles, wait a few minutes, then run `az login --use-device-code` again and re-export your environment variables.
 
 </details>
-
 
 <br/>
 🎉 Congratulations! Your sample tire factory environment is ready.
@@ -387,7 +379,7 @@ WHERE ARRAY_CONTAINS(c.skills, "tire_curing_press")
 ## 🛠️ Troubleshooting and FAQ
 
 <details>
-<summary>Problem: ARM template deployment fails</summary>
+<summary>Problem: ARM template deployment fails (Bash)</summary>
 
 ```bash
 # Check deployment errors
@@ -404,7 +396,7 @@ az provider register --namespace Microsoft.App
 </details>
 
 <details>
-<summary>Problem: <code>seed-data.sh</code> script fails</summary>
+<summary>Problem: <code>seed-data.sh</code> script fails (Bash)</summary>
 
 ```bash
 # Verify Cosmos DB is ready
@@ -426,7 +418,7 @@ bash challenge-0/seed-data.sh
 </details>
 
 <details>
-<summary>Problem: Permission denied on <code>seed-data.sh</code></summary>
+<summary>Problem: Permission denied on <code>seed-data.sh</code> (Bash)</summary>
 
 ```bash
 # Add execute permission to the script

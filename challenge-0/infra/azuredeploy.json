@@ -16,7 +16,8 @@
         "swedencentral",
         "francecentral",
         "eastus2",
-        "germanywestcentral"
+        "germanywestcentral",
+        "southafricanorth"
       ],
       "metadata": {
         "description": "Azure location where resources should be deployed"
@@ -279,7 +280,7 @@
         "type": "SystemAssigned"
       },
       "sku": {
-        "name": "S0"
+        "name": "F0"
       },
       "kind": "ContentSafety",
       "properties": {
